@@ -77,6 +77,7 @@ export function ClientContextProvider({
 
   const [isFetchingBalances, setIsFetchingBalances] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  // 初始化session中...
   const [hasCheckedPersistedSession, setHasCheckedPersistedSession] =
     useState(false);
 
@@ -117,14 +118,16 @@ export function ClientContextProvider({
     resetApp();
   }, [ethereumProvider]);
 
+  // 订阅提供者(Provider)事件
   const _subscribeToProviderEvents = useCallback(
     async (_client: UniversalProvider) => {
       if (typeof _client === "undefined") {
         throw new Error("WalletConnect is not initialized");
       }
-
       _client.on("display_uri", async (uri: string) => {
         console.log("EVENT", "QR Code Modal open");
+        console.log("uri", uri);
+
         web3Modal?.openModal({ uri });
       });
 
@@ -174,6 +177,7 @@ export function ClientContextProvider({
     [web3Modal]
   );
 
+  // 初始化一个以太坊或钱包连接的配置对象
   const createClient = useCallback(async () => {
     try {
       setIsInitializing(true);
@@ -201,6 +205,7 @@ export function ClientContextProvider({
     }
   }, []);
 
+  // 创键 provider，提供了与以太坊网络通信的功能。
   const createWeb3Provider = useCallback(
     (ethereumProvider: UniversalProvider) => {
       const web3Provider = new ethers.BrowserProvider(ethereumProvider);
@@ -239,7 +244,6 @@ export function ClientContextProvider({
       });
 
       createWeb3Provider(ethereumProvider);
-      console.log("------1-----");
 
       const _accounts = await ethereumProvider.enable();
       setSession(session);
@@ -251,7 +255,6 @@ export function ClientContextProvider({
       }));
       localStorage.setItem("wallet", "walletConnect");
       web3Modal?.closeModal();
-      console.log("-----2-----");
       signModal();
     },
     [ethereumProvider, chainData.eip155, createWeb3Provider, web3Modal]
@@ -271,6 +274,7 @@ export function ClientContextProvider({
       const caipChainId = `${chainData[0]}:${chainData[1]}`;
       console.log("restored caipChainId", caipChainId);
       setSession(_session);
+      localStorage.setItem("wallet", "walletConnect");
       setWallet((data) => ({
         ...data,
         accounts: allNamespaceAccounts.map((account) => account.split(":")[2]),
@@ -283,6 +287,7 @@ export function ClientContextProvider({
     [ethereumProvider, createWeb3Provider]
   );
 
+  // 检查 session
   const _checkForPersistedSession = useCallback(
     async (provider: UniversalProvider) => {
       if (typeof provider === "undefined") {
@@ -307,11 +312,9 @@ export function ClientContextProvider({
   // 签名
   const signMessage = useCallback(async () => {
     if (!web3Provider) return;
-
     try {
       const msg = "hello world";
       const hexMsg = encoding.utf8ToHex(msg, true);
-
       // 获取签名者数组
       const signers = await web3Provider.listAccounts();
       // 遍历签名者数组，并获取每个签名者的地址
@@ -339,7 +342,6 @@ export function ClientContextProvider({
         valid,
         result: signature,
       });
-      Modal.clear();
     } catch (error) {
       console.error("RPC request failed:", error);
     } finally {
@@ -458,6 +460,7 @@ export function ClientContextProvider({
   }, [web3Provider, wallet.accounts]);
 
   useEffect(() => {
+    // 获取session
     const getPersistedSession = async () => {
       if (!ethereumProvider) return;
       await _checkForPersistedSession(ethereumProvider);
