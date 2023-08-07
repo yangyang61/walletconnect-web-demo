@@ -98,7 +98,7 @@ export default function Home() {
           </Button>
         )}
         {wallet.isConnected && <p>{wallet.accounts[0]}</p>}
-        {!isFetchingBalances && <p>Balance: {wallet.balance} ETH</p>}
+        {isFetchingBalances && <p>Balance: {wallet.balance} ETH</p>}
         {wallet.isConnected && (
           <div className="flex items-center h-10 mt-10">
             <Input

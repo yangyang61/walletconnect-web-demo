@@ -260,6 +260,7 @@ export function ClientContextProvider({
     [ethereumProvider, chainData.eip155, createWeb3Provider, web3Modal]
   );
 
+  // 会话已连接
   const onSessionConnected = useCallback(
     async (_session: SessionTypes.Struct) => {
       if (!ethereumProvider) {
@@ -269,7 +270,6 @@ export function ClientContextProvider({
         .map((namespace) => namespace.accounts)
         .flat();
       const allNamespaceChains = Object.keys(_session.namespaces);
-
       const chainData = allNamespaceAccounts[0].split(":");
       const caipChainId = `${chainData[0]}:${chainData[1]}`;
       console.log("restored caipChainId", caipChainId);
@@ -281,7 +281,7 @@ export function ClientContextProvider({
         chains: caipChainId,
         isConnected: true,
       }));
-      console.log("RESTORED", allNamespaceChains, allNamespaceAccounts);
+
       createWeb3Provider(ethereumProvider);
     },
     [ethereumProvider, createWeb3Provider]
